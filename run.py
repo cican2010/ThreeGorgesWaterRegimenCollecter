@@ -1,3 +1,5 @@
+# -*- coding: UTF-8 -*-
+
 import requests,json
 import os
 import time,datetime
@@ -133,7 +135,7 @@ def get_all_water_data_by_date_section(startDate,endDate):
 def create_table():
     try:
         cursor=conn.cursor()
-        with open('water_regimen.sql') as f:
+        with open('water_regimen.sql',encoding='utf8') as f:
             sql_list=f.read().split(';')[:-1]
             sql_list=[x.replace('\n', ' ') if '\n' in x else x for x in sql_list]
         for sql_item  in sql_list:
@@ -153,8 +155,7 @@ def database_backup():
     cursor.execute("SHOW TABLES LIKE 'water_regimen'")
     if not cursor.fetchone():
         print("不存在该表,创建表")
-
-        return False
+        create_table()
     # 复制表
     cursor.execute("CREATE TABLE water_regimen_%s SELECT * FROM water_regimen" % datetime.datetime.today().strftime("%Y%m%d%H%M%S"))
     # 获取最大的日期
@@ -245,5 +246,6 @@ def collectTask():
 if __name__=='__main__':
     # 采集数据
     collectTask()
+    # database_backup()
     # 转为 csv 提供下载
     update_excel_file()
