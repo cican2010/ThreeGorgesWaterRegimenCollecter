@@ -43,7 +43,7 @@ recent_sync_days=int(cf.get('common','recent_sync_days'))
 
 # conn=pymysql.connect(cf.get('mysql-database','host'),cf.get('mysql-database','user'),cf.get('mysql-database','passwd'),cf.get('mysql-database','db'),cf.get('mysql-database','charset'))
 conn=pymysql.connect(host=cf.get('mysql-database','host'),user=cf.get('mysql-database','user'),passwd=cf.get('mysql-database','password'),db=cf.get('mysql-database','db'),charset=cf.get('mysql-database','charset'))
-cursor=conn.cursor()
+
 
 thLock=threading.Lock()
 dateQueue=queue.Queue()
@@ -84,7 +84,7 @@ def get_water_data_by_id_and_date(modelId,cDate):
         'cache-control': "no-cache"
         }
     querystring = {"moduleId":modelId,"struts.portlet.mode":"view","struts.portlet.action":"/portlet/waterFront!getDatas.action"}
-    response = requests.request("POST", url, data=payload, headers=headers, params=querystring, timeout=2)
+    response = requests.request("POST", url, data=payload, headers=headers, params=querystring, timeout=10)
     try:
         if(response.status_code!=200 or check_json(response.text)):
             # 查询出错
@@ -98,6 +98,7 @@ def get_water_data_by_id_and_date(modelId,cDate):
 
 def update_database(date,data):
     try:
+        cursor=conn.cursor()
         for site in data:
             # 对于每个站
             for c in col:
@@ -112,8 +113,10 @@ def update_database(date,data):
                     else:
                         # 已经存在, 更新
                         cursor.execute("UPDATE water_regimen SET %s=%f WHERE id=%d"%(colAlias[c],float(t['avgv']),oldRowId[0]))
+        cursor.close()
         conn.commit()
     except Exception as e:
+        cursor.close()
         return False
 def get_all_water_data_by_date_section(startDate,endDate):
     currentDate=startDate
@@ -127,16 +130,37 @@ def get_all_water_data_by_date_section(startDate,endDate):
         currentDate=currentDate+datetime.timedelta(days=1)
     return True
 
+def create_table():
+    try:
+        cursor=conn.cursor()
+        with open('water_regimen.sql') as f:
+            sql_list=f.read().split(';')[:-1]
+            sql_list=[x.replace('\n', ' ') if '\n' in x else x for x in sql_list]
+        for sql_item  in sql_list:
+            cursor.execute(sql_item)
+        cursor.close()
+        conn.commit()
+        return True
+    except Exception as e:
+        print(e)
+        cursor.close()
+        conn.commit()
+        return False
+            
+
 def database_backup():
+    cursor=conn.cursor()
     cursor.execute("SHOW TABLES LIKE 'water_regimen'")
     if not cursor.fetchone():
-        print("不存在该表")
+        print("不存在该表,创建表")
+
         return False
     # 复制表
     cursor.execute("CREATE TABLE water_regimen_%s SELECT * FROM water_regimen" % datetime.datetime.today().strftime("%Y%m%d%H%M%S"))
     # 获取最大的日期
     cursor.execute("SELECT max(date) FROM water_regimen")
     row=cursor.fetchone()
+    cursor.close()
     if not row or not row[0]:
         return False
     else:
@@ -144,6 +168,7 @@ def database_backup():
 
 def update_excel_file():
     outputFile=xlwt.Workbook()
+    cursor=conn.cursor()
     # 分站点类型导出为表
     for site in modelNameList:
         # 对于每个站点
@@ -162,6 +187,7 @@ def update_excel_file():
         for row in range(1,len(results)+1):
             for col in range(0,len(fields)):
                 sheet.write(row,col,u'%s'%results[row-1][col])
+    cursor.close()
     outputFile.save(excelFileName)
     # 将文件复制到下载目录
     outputFile.save(targetDir+excelFileName)
@@ -206,7 +232,7 @@ def collectTask():
     #     currentDate=currentDate+datetime.timedelta(days=1)
     # # 创建多线程
     # thList=[]
-    # for i in range(1):
+    # for i in range(5):
     #     t=threading.Thread(target=loop)
     #     t.start()
     #     thList.append(t)
