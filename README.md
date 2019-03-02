@@ -12,5 +12,5 @@
 Email: cug_xia@foxmail.com
 
 ## 赞助
-[!支付宝](https://blog.cuger.cn/images/alipay.jpg)
-[!微信](https://blog.cuger.cn/images/wechatpay.jpg)
+![支付宝](https://blog.cuger.cn/images/alipay.jpg)
+![微信](https://blog.cuger.cn/images/wechatpay.jpg)
