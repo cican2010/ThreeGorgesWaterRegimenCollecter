@@ -7,3 +7,7 @@
 
 ## 数据下载地址
 直接下载地址为: https://s.cuger.cn/files/ThreeGorgesWaterRegimen.xls
+
+## 赞助
+[支付宝](!https://blog.cuger.cn/images/alipay.jpg)
+[微信](!https://blog.cuger.cn/images/wechatpay.jpg)
