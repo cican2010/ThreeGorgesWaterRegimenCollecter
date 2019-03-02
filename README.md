@@ -6,7 +6,7 @@
 此脚本用于服务端。自动自动采集数据，并存到数据库，提供文件下载。
 
 ## 数据下载地址
-直接下载地址为: https://s.cuger.cn/files/ThreeGorgesWaterRegimen.xls
+直接下载地址为: https://s.cuger.cn/files/ThreeGorgesWaterRegimen.xlsx
 
 # 联系
 Blog: blog.cuger.cn
