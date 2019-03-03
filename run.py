@@ -5,7 +5,7 @@ import os
 import time,datetime
 import pymysql
 import queue,threading
-import xlwt,shutil
+import xlsxwriter as xlwt
 import configparser
 
 url = "http://www.ctg.com.cn/eportal/ui"
@@ -32,7 +32,7 @@ colAlias={
 }
 
 cf=configparser.ConfigParser()
-cf.read('config.ini',encoding='utf8')
+cf.read(os.path.dirname(os.path.realpath(__file__))+'/config.ini',encoding='utf8')
 
 # 用户配置项
 excelFileName=cf.get('excel-file','name')
@@ -168,20 +168,21 @@ def database_backup():
         return row[0]
 
 def update_excel_file():
-    outputFile=xlwt.Workbook()
+    outputFile=xlwt.Workbook(targetDir+excelFileName)
     cursor=conn.cursor()
     # 分站点类型导出为表
     for site in modelNameList:
         # 对于每个站点
-        cursor.execute("SELECT date,hour,site,upLevel,downLevel,inSpeed,outSpeed FROM water_regimen WHERE site='%s'"%site)
-        fields=cursor.description
+        cursor.execute("SELECT date,hour,site,upLevel,downLevel,inSpeed,outSpeed FROM water_regimen WHERE site='%s' ORDER BY date DESC,hour DESC"%site)
+        # fields=cursor.description
+        fields=['日期','时间','站点','上游水位(m)','下游水位(m)','入库(m^3/s)','出库(m^3/s)']
         cursor.scroll(0,mode='absolute')
         results=cursor.fetchall()
         # 记录为表
-        sheet=outputFile.add_sheet(site)
+        sheet=outputFile.add_worksheet(site)
         # 标题
         for field in range(0,len(fields)):
-            sheet.write(0,field,fields[field][0])
+            sheet.write(0,field,fields[field])
         # 添加行
         row = 1
         col = 0
@@ -189,9 +190,10 @@ def update_excel_file():
             for col in range(0,len(fields)):
                 sheet.write(row,col,u'%s'%results[row-1][col])
     cursor.close()
-    outputFile.save(excelFileName)
+    outputFile.close()
+    # outputFile.save(excelFileName)
     # 将文件复制到下载目录
-    outputFile.save(targetDir+excelFileName)
+    # outputFile.save(targetDir+excelFileName)
     # shutil.copy(excelFileName,targetDir)
 
 def loop():
@@ -239,7 +241,7 @@ def collectTask():
     #     thList.append(t)
     # for t in thList:
     #     t.join()
-    get_all_water_data_by_date_section(sDate,eDate)
+    get_all_water_data_by_date_section(currentDate,eDate)
     print("任务结束:",datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%I"))
         
 
