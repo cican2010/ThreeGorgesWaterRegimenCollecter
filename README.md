@@ -9,7 +9,7 @@
 直接下载地址为: https://s.cuger.cn/files/ThreeGorgesWaterRegimen.xlsx
 
 # 联系
-Blog: blog.cuger.cn
+Blog: https://blog.cuger.cn
 Email: cug_xia@foxmail.com
 
 ## 赞助
